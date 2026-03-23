@@ -7,7 +7,7 @@ import { MessageList } from "./MessageList";
 import { MessageInput } from "./MessageInput";
 import { QuickPrompts } from "./QuickPrompts";
 import { toast } from "sonner";
-import { Sparkles, Bot } from "lucide-react";
+import { Bot, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface ChatContainerProps {
@@ -31,7 +31,6 @@ export function ChatContainer({ className }: ChatContainerProps) {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const handleSend = async (query: string) => {
-    // Add user message immediately
     const userMessage = {
       id: `user-${Date.now()}`,
       role: "user" as const,
@@ -40,7 +39,6 @@ export function ChatContainer({ className }: ChatContainerProps) {
     };
     addMessage(userMessage);
 
-    // Create placeholder for assistant response
     const assistantMessageId = `assistant-${Date.now()}`;
     addMessage({
       id: assistantMessageId,
@@ -52,8 +50,6 @@ export function ChatContainer({ className }: ChatContainerProps) {
 
     setPendingMessageId(assistantMessageId);
     setLoading(true);
-
-    // Create abort controller for cancellation
     abortControllerRef.current = new AbortController();
 
     try {
@@ -63,12 +59,9 @@ export function ChatContainer({ className }: ChatContainerProps) {
         language,
         {
           onSession: (newSessionId) => {
-            if (!sessionId) {
-              setSessionId(newSessionId);
-            }
+            if (!sessionId) setSessionId(newSessionId);
           },
           onLanguage: (detectedLang) => {
-            // Language auto-detection - could update UI
             console.log("Detected language:", detectedLang);
           },
           onProcessGuide: (guide) => {
@@ -81,10 +74,7 @@ export function ChatContainer({ className }: ChatContainerProps) {
             updateLastAssistantMessage({ citations });
           },
           onDone: (confidence) => {
-            updateLastAssistantMessage({
-              confidence,
-              isStreaming: false,
-            });
+            updateLastAssistantMessage({ confidence, isStreaming: false });
             setPendingMessageId(null);
             setLoading(false);
           },
@@ -110,11 +100,6 @@ export function ChatContainer({ className }: ChatContainerProps) {
     }
   };
 
-  const handleQuickPromptSelect = (prompt: string) => {
-    handleSend(prompt);
-  };
-
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (abortControllerRef.current) {
@@ -125,39 +110,34 @@ export function ChatContainer({ className }: ChatContainerProps) {
 
   return (
     <div className={`flex flex-col h-full ${className || ""}`}>
-      {/* Messages */}
       <div className="flex-1 overflow-hidden">
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center p-6">
-            {/* Welcome Section */}
+            {/* Welcome */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="text-center mb-10"
             >
-              <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center border border-blue-500/30">
-                <Sparkles className="h-10 w-10 text-blue-400" />
+              <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-500/20 flex items-center justify-center">
+                <Bot className="h-8 w-8 text-blue-400" />
               </div>
-              <h2 className="text-2xl font-bold text-white mb-2">
+              <h2 className="text-2xl font-bold text-white mb-3">
                 Xin chào! Tôi là GEM HR Copilot
               </h2>
-              <p className="text-slate-400 max-w-md">
-                Tôi có thể giúp bạn tìm kiếm thông tin về chính sách HR của GEM
-                Corporation. Hãy hỏi tôi bất cứ điều gì!
+              <p className="text-zinc-400 max-w-md leading-relaxed">
+                Tôi có thể giúp bạn tìm kiếm thông tin về chính sách HR của GEM Corporation. 
+                Hãy hỏi tôi bất cứ điều gì!
               </p>
             </motion.div>
 
-            <QuickPrompts
-              language={language}
-              onSelect={handleQuickPromptSelect}
-            />
+            <QuickPrompts language={language} onSelect={handleSend} />
           </div>
         ) : (
           <MessageList messages={messages} />
         )}
       </div>
 
-      {/* Input at bottom */}
       <MessageInput onSend={handleSend} isLoading={isLoading} />
     </div>
   );

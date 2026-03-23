@@ -9,16 +9,20 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
+        default:
+          "bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-600",
         primary:
           "bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-600",
         secondary:
-          "bg-gray-200 text-gray-900 hover:bg-gray-300 focus-visible:ring-gray-400",
+          "bg-zinc-800 text-zinc-100 hover:bg-zinc-700 focus-visible:ring-zinc-400",
         outline:
-          "border border-gray-300 bg-white hover:bg-gray-50 focus-visible:ring-gray-400",
-        ghost: "hover:bg-gray-100 hover:text-gray-900",
+          "border border-zinc-700 bg-transparent text-zinc-100 hover:bg-zinc-800 focus-visible:ring-zinc-400",
+        ghost: 
+          "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100",
         danger:
           "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-600",
-        link: "text-blue-600 underline-offset-4 hover:underline",
+        link: 
+          "text-blue-500 underline-offset-4 hover:underline",
       },
       size: {
         sm: "h-8 px-3 text-xs",
@@ -28,7 +32,7 @@ const buttonVariants = cva(
       },
     },
     defaultVariants: {
-      variant: "primary",
+      variant: "default",
       size: "md",
     },
   }

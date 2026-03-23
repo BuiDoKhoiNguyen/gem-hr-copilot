@@ -12,7 +12,6 @@ interface MessageListProps {
 export function MessageList({ messages, className }: MessageListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom on new messages
   useEffect(() => {
     if (containerRef.current) {
       containerRef.current.scrollTo({
@@ -29,9 +28,9 @@ export function MessageList({ messages, className }: MessageListProps) {
   return (
     <div
       ref={containerRef}
-      className={`flex-1 overflow-y-auto px-4 py-6 ${className || ""}`}
+      className={`h-full overflow-y-auto ${className || ""}`}
     >
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
         {messages.map((msg) => (
           <MessageBubble key={msg.id} message={msg} />
         ))}

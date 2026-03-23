@@ -11,23 +11,19 @@ export default function MainLayout({
 }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
-  };
-
   return (
-    <div className="flex h-screen bg-slate-950">
+    <div className="flex h-screen bg-zinc-950">
       {/* Sidebar */}
-      <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
+      <Sidebar 
+        collapsed={sidebarCollapsed} 
+        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} 
+      />
 
-      {/* Main Content Area */}
+      {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Header */}
         <Header />
-
-        {/* Main Content */}
-        <main className="flex-1 overflow-auto bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
-          <div className="h-full">{children}</div>
+        <main className="flex-1 overflow-auto bg-zinc-900">
+          {children}
         </main>
       </div>
     </div>
