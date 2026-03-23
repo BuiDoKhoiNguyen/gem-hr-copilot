@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { motion } from "framer-motion";
-import { User, Bot, Copy, Check, ThumbsUp, ThumbsDown } from "lucide-react";
+import { User, Bot, Copy, Check, ThumbsUp, ThumbsDown, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Message } from "@/lib/stores/chatStore";
 import { CitationList } from "./CitationList";
@@ -18,9 +18,18 @@ interface Props {
 
 function TypingIndicator() {
   return (
-    <div className="flex items-center gap-1.5 py-1">
+    <div className="flex items-center gap-1.5 py-2">
       {[0, 1, 2].map((i) => (
-        <span key={i} className="typing-dot" style={{ animationDelay: `${i * 0.2}s` }} />
+        <motion.span
+          key={i}
+          className="w-2 h-2 rounded-full bg-blue-400"
+          animate={{ scale: [1, 1.2, 1], opacity: [0.4, 1, 0.4] }}
+          transition={{
+            duration: 1,
+            repeat: Infinity,
+            delay: i * 0.2,
+          }}
+        />
       ))}
     </div>
   );
@@ -48,16 +57,16 @@ export default function MessageBubble({ message }: Props) {
       {/* Avatar */}
       <div
         className={cn(
-          "shrink-0 w-8 h-8 rounded-lg flex items-center justify-center",
+          "shrink-0 w-9 h-9 rounded-xl flex items-center justify-center shadow-lg",
           isUser
-            ? "bg-gradient-to-br from-blue-500 to-indigo-600"
-            : "bg-zinc-800 border border-zinc-700"
+            ? "bg-gradient-to-br from-blue-500 to-indigo-600 shadow-blue-500/20"
+            : "bg-gradient-to-br from-amber-400 to-orange-500 shadow-amber-500/20"
         )}
       >
         {isUser ? (
           <User className="h-4 w-4 text-white" />
         ) : (
-          <Bot className="h-4 w-4 text-zinc-400" />
+          <Sparkles className="h-4 w-4 text-white" />
         )}
       </div>
 
@@ -67,8 +76,8 @@ export default function MessageBubble({ message }: Props) {
           className={cn(
             "rounded-2xl px-4 py-3",
             isUser
-              ? "bg-blue-600 text-white ml-auto w-fit"
-              : "bg-zinc-800/50 border border-zinc-700/50"
+              ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white ml-auto w-fit shadow-lg shadow-blue-500/20"
+              : "bg-white/[0.03] border border-white/[0.06]"
           )}
         >
           {/* Process guide */}
@@ -92,10 +101,10 @@ export default function MessageBubble({ message }: Props) {
                   li: ({ children }) => <li className="text-zinc-300">{children}</li>,
                   strong: ({ children }) => <strong className="text-white font-semibold">{children}</strong>,
                   code: ({ children }) => (
-                    <code className="bg-zinc-700/50 px-1.5 py-0.5 rounded text-blue-300 text-sm">{children}</code>
+                    <code className="bg-white/[0.08] px-1.5 py-0.5 rounded text-blue-300 text-sm">{children}</code>
                   ),
                   pre: ({ children }) => (
-                    <pre className="bg-zinc-900 border border-zinc-700 rounded-lg p-3 overflow-x-auto my-2">{children}</pre>
+                    <pre className="bg-black/20 border border-white/[0.06] rounded-lg p-3 overflow-x-auto my-2">{children}</pre>
                   ),
                 }}
               >
@@ -117,24 +126,24 @@ export default function MessageBubble({ message }: Props) {
               variant="ghost"
               size="sm"
               onClick={handleCopy}
-              className="h-7 px-2 text-zinc-500 hover:text-white hover:bg-zinc-800 gap-1.5"
+              className="h-7 px-2 text-zinc-500 hover:text-white hover:bg-white/[0.05] gap-1.5 rounded-lg"
             >
               {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
               <span className="text-xs">{copied ? "Copied" : "Copy"}</span>
             </Button>
 
-            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-zinc-500 hover:text-white hover:bg-zinc-800">
+            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-zinc-500 hover:text-white hover:bg-white/[0.05] rounded-lg">
               <ThumbsUp className="h-3.5 w-3.5" />
             </Button>
 
-            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-zinc-500 hover:text-white hover:bg-zinc-800">
+            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-zinc-500 hover:text-white hover:bg-white/[0.05] rounded-lg">
               <ThumbsDown className="h-3.5 w-3.5" />
             </Button>
 
             {message.confidence != null && message.confidence > 0 && (
               <span
                 className={cn(
-                  "text-xs px-2 py-1 rounded-full border ml-auto",
+                  "text-xs px-2.5 py-1 rounded-full border ml-auto font-medium",
                   message.confidence > 0.7
                     ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                     : message.confidence > 0.4

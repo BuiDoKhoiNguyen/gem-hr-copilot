@@ -22,10 +22,10 @@ export function QuickPrompts({ language, onSelect, className }: QuickPromptsProp
   const displayPrompts = prompts.length > 0
     ? prompts
     : [
-        "Chính sách nghỉ phép năm là gì?",
-        "Quy định về làm việc từ xa như thế nào?",
-        "Cách đăng ký bảo hiểm y tế?",
-        "Quy trình xin nghỉ việc ra sao?",
+        "What is the annual leave policy?",
+        "How does remote work policy work?",
+        "How to register for health insurance?",
+        "What is the resignation process?",
       ];
 
   if (isLoading) {
@@ -33,7 +33,7 @@ export function QuickPrompts({ language, onSelect, className }: QuickPromptsProp
       <div className={cn("w-full max-w-2xl", className)}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-16 rounded-xl bg-zinc-800/50 animate-pulse" />
+            <div key={i} className="h-[72px] rounded-xl bg-white/[0.03] animate-pulse" />
           ))}
         </div>
       </div>
@@ -55,7 +55,7 @@ export function QuickPrompts({ language, onSelect, className }: QuickPromptsProp
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
             onClick={() => onSelect(prompt)}
-            className="group relative p-4 text-left rounded-xl border border-zinc-800 bg-zinc-800/30 hover:bg-zinc-800/60 hover:border-zinc-700 transition-all"
+            className="group relative p-4 text-left rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/[0.1] transition-all"
           >
             <div className="flex items-start justify-between gap-3">
               <p className="text-sm text-zinc-300 group-hover:text-white transition-colors leading-relaxed">

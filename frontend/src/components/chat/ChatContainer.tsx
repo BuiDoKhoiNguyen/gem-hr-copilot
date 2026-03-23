@@ -7,7 +7,7 @@ import { MessageList } from "./MessageList";
 import { MessageInput } from "./MessageInput";
 import { QuickPrompts } from "./QuickPrompts";
 import { toast } from "sonner";
-import { Bot, Sparkles } from "lucide-react";
+import { Bot, Sparkles, MessageSquare, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface ChatContainerProps {
@@ -109,7 +109,7 @@ export function ChatContainer({ className }: ChatContainerProps) {
   }, []);
 
   return (
-    <div className={`flex flex-col h-full ${className || ""}`}>
+    <div className={`flex flex-col h-full bg-[#09090b] ${className || ""}`}>
       <div className="flex-1 overflow-hidden">
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center p-6">
@@ -117,18 +117,40 @@ export function ChatContainer({ className }: ChatContainerProps) {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
               className="text-center mb-10"
             >
-              <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-500/20 flex items-center justify-center">
-                <Bot className="h-8 w-8 text-blue-400" />
+              {/* Icon */}
+              <div className="relative w-20 h-20 mx-auto mb-6">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-3xl blur-xl" />
+                <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20 flex items-center justify-center">
+                  <Bot className="h-10 w-10 text-blue-400" />
+                </div>
               </div>
-              <h2 className="text-2xl font-bold text-white mb-3">
-                Xin chào! Tôi là GEM HR Copilot
+
+              <h2 className="text-2xl font-bold text-white mb-3 tracking-tight">
+                Hello! I'm GEM HR Copilot
               </h2>
               <p className="text-zinc-400 max-w-md leading-relaxed">
-                Tôi có thể giúp bạn tìm kiếm thông tin về chính sách HR của GEM Corporation. 
-                Hãy hỏi tôi bất cứ điều gì!
+                I can help you find information about GEM Corporation HR policies. 
+                Ask me anything!
               </p>
+
+              {/* Features badges */}
+              <div className="flex items-center justify-center gap-3 mt-6">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.08] text-xs text-zinc-400">
+                  <MessageSquare className="h-3 w-3 text-blue-400" />
+                  <span>24/7 Support</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.08] text-xs text-zinc-400">
+                  <Zap className="h-3 w-3 text-amber-400" />
+                  <span>Instant Answers</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.08] text-xs text-zinc-400">
+                  <Sparkles className="h-3 w-3 text-violet-400" />
+                  <span>AI Powered</span>
+                </div>
+              </div>
             </motion.div>
 
             <QuickPrompts language={language} onSelect={handleSend} />
