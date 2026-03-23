@@ -7,6 +7,8 @@ import { MessageList } from "./MessageList";
 import { MessageInput } from "./MessageInput";
 import { QuickPrompts } from "./QuickPrompts";
 import { toast } from "sonner";
+import { Sparkles, Bot } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface ChatContainerProps {
   className?: string;
@@ -122,11 +124,29 @@ export function ChatContainer({ className }: ChatContainerProps) {
   }, []);
 
   return (
-    <div className={`flex flex-col h-full bg-white ${className || ""}`}>
+    <div className={`flex flex-col h-full ${className || ""}`}>
       {/* Messages */}
       <div className="flex-1 overflow-hidden">
         {messages.length === 0 ? (
-          <div className="h-full flex items-center justify-center p-6">
+          <div className="h-full flex flex-col items-center justify-center p-6">
+            {/* Welcome Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center mb-10"
+            >
+              <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center border border-blue-500/30">
+                <Sparkles className="h-10 w-10 text-blue-400" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Xin chào! Tôi là GEM HR Copilot
+              </h2>
+              <p className="text-slate-400 max-w-md">
+                Tôi có thể giúp bạn tìm kiếm thông tin về chính sách HR của GEM
+                Corporation. Hãy hỏi tôi bất cứ điều gì!
+              </p>
+            </motion.div>
+
             <QuickPrompts
               language={language}
               onSelect={handleQuickPromptSelect}

@@ -16,12 +16,9 @@ export default function MainLayout({
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-slate-950">
       {/* Sidebar */}
-      <Sidebar
-        collapsed={sidebarCollapsed}
-        onToggle={toggleSidebar}
-      />
+      <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -29,10 +26,8 @@ export default function MainLayout({
         <Header />
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto bg-white">
-          <div className="h-full">
-            {children}
-          </div>
+        <main className="flex-1 overflow-auto bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800">
+          <div className="h-full">{children}</div>
         </main>
       </div>
     </div>

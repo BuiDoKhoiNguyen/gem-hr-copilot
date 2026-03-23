@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   MessageCircle,
   Database,
@@ -11,7 +12,9 @@ import {
   Menu,
   X,
   ChevronLeft,
-  Bot
+  Bot,
+  Sparkles,
+  Home,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -61,62 +64,71 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         variant="ghost"
         size="sm"
         onClick={toggleMobile}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-slate-900/80 backdrop-blur-sm border border-white/10 hover:bg-slate-800 text-white"
       >
         <Menu className="h-5 w-5" />
       </Button>
 
       {/* Mobile Overlay */}
-      {isMobileOpen && (
-        <div
-          className="lg:hidden fixed inset-0 z-40 bg-black bg-opacity-50"
-          onClick={toggleMobile}
-        />
-      )}
+      <AnimatePresence>
+        {isMobileOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+            onClick={toggleMobile}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Sidebar */}
-      <div className={cn(
-        // Base styles
-        "flex flex-col bg-white border-r border-gray-200 shadow-sm transition-all duration-300",
+      <motion.div
+        className={cn(
+          // Base styles
+          "flex flex-col bg-gradient-to-b from-slate-900 to-slate-950 border-r border-white/10 transition-all duration-300",
 
-        // Desktop behavior
-        "hidden lg:flex",
-        collapsed ? "w-16" : "w-64",
+          // Desktop behavior
+          "hidden lg:flex",
+          collapsed ? "w-[72px]" : "w-[260px]",
 
-        // Mobile behavior
-        "lg:relative fixed top-0 left-0 h-full z-50",
-        isMobileOpen ? "flex w-64" : "hidden lg:flex",
-      )}>
-
+          // Mobile behavior
+          "lg:relative fixed top-0 left-0 h-full z-50",
+          isMobileOpen ? "flex w-[260px]" : "hidden lg:flex"
+        )}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-700 rounded-lg flex items-center justify-center">
-              <Bot className="h-5 w-5 text-white" />
+        <div className="flex items-center justify-between p-4 border-b border-white/5">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="relative w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+              <Sparkles className="h-5 w-5 text-white" />
+              <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-slate-900" />
             </div>
             {!collapsed && (
               <div>
-                <h1 className="text-lg font-bold text-gray-900">
+                <h1 className="text-base font-bold text-white">
                   {t("app.title")}
                 </h1>
-                <p className="text-xs text-gray-500">
-                  {t("app.description")}
+                <p className="text-[11px] text-slate-400 leading-tight">
+                  AI HR Assistant
                 </p>
               </div>
             )}
-          </div>
+          </Link>
 
           {/* Desktop Collapse Button */}
           <Button
             variant="ghost"
             size="sm"
             onClick={onToggle}
-            className="hidden lg:flex p-1"
+            className="hidden lg:flex p-1.5 text-slate-400 hover:text-white hover:bg-white/10"
           >
-            <ChevronLeft className={cn(
-              "h-4 w-4 transition-transform",
-              collapsed && "rotate-180"
-            )} />
+            <ChevronLeft
+              className={cn(
+                "h-4 w-4 transition-transform duration-300",
+                collapsed && "rotate-180"
+              )}
+            />
           </Button>
 
           {/* Mobile Close Button */}
@@ -124,14 +136,35 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
             variant="ghost"
             size="sm"
             onClick={toggleMobile}
-            className="lg:hidden p-1"
+            className="lg:hidden p-1.5 text-slate-400 hover:text-white hover:bg-white/10"
           >
             <X className="h-4 w-4" />
           </Button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-4 pb-4 space-y-2">
+        <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
+          {/* Home Link */}
+          <Link
+            href="/"
+            onClick={() => setIsMobileOpen(false)}
+            className={cn(
+              "flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl transition-all relative group",
+              "text-slate-400 hover:text-white hover:bg-white/5",
+              collapsed && "justify-center px-2"
+            )}
+          >
+            <Home className="h-5 w-5 shrink-0" />
+            {!collapsed && <span>Trang chủ</span>}
+            {collapsed && (
+              <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-slate-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-xl border border-white/10">
+                Trang chủ
+              </div>
+            )}
+          </Link>
+
+          <div className="h-px bg-white/5 my-3" />
+
           {navigation.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -143,32 +176,29 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                 onClick={() => setIsMobileOpen(false)}
                 className={cn(
                   // Base styles
-                  "flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors relative group",
+                  "flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl transition-all relative group",
 
                   // Active state
-                  isActive ? (
-                    "bg-blue-50 text-blue-700 border border-blue-200"
-                  ) : (
-                    "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                  ),
+                  isActive
+                    ? "bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white border border-blue-500/30 shadow-lg shadow-blue-500/10"
+                    : "text-slate-400 hover:text-white hover:bg-white/5",
 
                   // Collapsed state
                   collapsed && "justify-center px-2"
                 )}
               >
-                <Icon className={cn(
-                  "h-5 w-5 shrink-0",
-                  isActive ? "text-blue-700" : "text-gray-500 group-hover:text-gray-700"
-                )} />
+                <Icon
+                  className={cn(
+                    "h-5 w-5 shrink-0 transition-colors",
+                    isActive ? "text-blue-400" : "group-hover:text-blue-400"
+                  )}
+                />
 
                 {!collapsed && (
                   <>
-                    <span className="flex-1">{t(item.name)}</span>
+                    <span className="flex-1 font-medium">{t(item.name)}</span>
                     {item.badge && (
-                      <Badge
-                        variant="secondary"
-                        className="text-xs bg-green-100 text-green-700 border-green-200"
-                      >
+                      <Badge className="text-[10px] px-1.5 py-0 h-5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 font-medium">
                         {item.badge}
                       </Badge>
                     )}
@@ -177,9 +207,21 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
 
                 {/* Tooltip for collapsed state */}
                 {collapsed && (
-                  <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                  <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-slate-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-xl border border-white/10">
                     {t(item.name)}
+                    {item.badge && (
+                      <span className="ml-2 text-emerald-400">{item.badge}</span>
+                    )}
                   </div>
+                )}
+
+                {/* Active indicator */}
+                {isActive && (
+                  <motion.div
+                    layoutId="activeNav"
+                    className="absolute left-0 w-1 h-6 bg-gradient-to-b from-blue-400 to-purple-500 rounded-r-full"
+                    transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                  />
                 )}
               </Link>
             );
@@ -187,30 +229,50 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         </nav>
 
         {/* Bottom Section */}
-        <div className="border-t border-gray-200 p-4 space-y-3">
+        <div className="border-t border-white/5 p-3 space-y-2">
           {/* Language Toggle */}
-          <div className="flex items-center justify-center">
+          <div
+            className={cn(
+              "flex items-center rounded-xl p-2 hover:bg-white/5 transition-colors",
+              collapsed ? "justify-center" : "justify-start"
+            )}
+          >
             <LanguageToggle />
           </div>
 
           {/* Theme Toggle */}
-          <div className="flex items-center justify-center">
+          <div
+            className={cn(
+              "flex items-center rounded-xl p-2 hover:bg-white/5 transition-colors",
+              collapsed ? "justify-center" : "justify-start"
+            )}
+          >
             <ThemeToggle collapsed={collapsed} />
           </div>
 
-          {/* Settings (future) */}
+          {/* Settings */}
           {!collapsed && (
             <Button
               variant="ghost"
               size="sm"
-              className="w-full justify-start text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+              className="w-full justify-start text-slate-400 hover:text-white hover:bg-white/5 rounded-xl"
             >
-              <Settings className="h-4 w-4 mr-2" />
+              <Settings className="h-4 w-4 mr-3" />
               {t("nav.settings")}
             </Button>
           )}
+
+          {/* Version Badge */}
+          {!collapsed && (
+            <div className="pt-2 px-2">
+              <div className="text-[10px] text-slate-500 flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                <span>v1.0.0 - Online</span>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+      </motion.div>
     </>
   );
 }

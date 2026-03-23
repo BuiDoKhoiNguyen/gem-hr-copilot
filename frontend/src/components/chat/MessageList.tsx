@@ -9,16 +9,16 @@ interface MessageListProps {
   className?: string;
 }
 
-export function MessageList({
-  messages,
-  className,
-}: MessageListProps) {
+export function MessageList({ messages, className }: MessageListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
     if (containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+      containerRef.current.scrollTo({
+        top: containerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
     }
   }, [messages]);
 
@@ -29,11 +29,13 @@ export function MessageList({
   return (
     <div
       ref={containerRef}
-      className={`flex-1 overflow-y-auto px-4 py-4 space-y-4 ${className || ""}`}
+      className={`flex-1 overflow-y-auto px-4 py-6 ${className || ""}`}
     >
-      {messages.map((msg) => (
-        <MessageBubble key={msg.id} message={msg} />
-      ))}
+      <div className="max-w-4xl mx-auto space-y-6">
+        {messages.map((msg) => (
+          <MessageBubble key={msg.id} message={msg} />
+        ))}
+      </div>
     </div>
   );
 }
