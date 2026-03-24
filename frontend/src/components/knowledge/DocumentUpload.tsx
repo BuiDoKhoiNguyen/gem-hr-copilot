@@ -1,236 +1,177 @@
 "use client";
 
-import { useState, useRef, ChangeEvent } from "react";
-import { Upload, File, X, CheckCircle, AlertCircle } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useState, useRef } from "react";
+import { Upload, FileText, Globe, Link as LinkIcon, Loader2, CheckCircle2, X } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Card, CardContent } from "@/components/ui/card";
-import { useUploadPDF } from "@/lib/hooks/use-ingest";
-import type { Language } from "@/lib/stores/chatStore";
-import { cn } from "@/lib/utils/cn";
-
-interface UploadFile {
-  file: File;
-  id: string;
-  progress: number;
-  status: "pending" | "uploading" | "success" | "error";
-  error?: string;
-}
+type UploadMode = "pdf" | "confluence" | "url";
 
 interface DocumentUploadProps {
-  language: Language;
-  onUploadComplete?: () => void;
-  className?: string;
+  knowledgeBases: { id: string; name: string }[];
+  onUploadPDF: (file: File, language: string, kbId: string) => Promise<void>;
+  onIngestConfluence: (spaceKey: string, language: string, kbId: string) => Promise<void>;
+  onIngestURL: (url: string, language: string, kbId: string) => Promise<void>;
 }
 
-export function DocumentUpload({
-  language,
-  onUploadComplete,
-  className,
+export default function DocumentUpload({
+  knowledgeBases,
+  onUploadPDF,
+  onIngestConfluence,
+  onIngestURL,
 }: DocumentUploadProps) {
-  const { t } = useTranslation();
-  const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
+  const [mode, setMode] = useState<UploadMode>("pdf");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [selectedKB, setSelectedKB] = useState(knowledgeBases[0]?.id || "");
+  const [language, setLanguage] = useState("vi");
+  const [file, setFile] = useState<File | null>(null);
+  const [spaceKey, setSpaceKey] = useState("");
+  const [url, setUrl] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const uploadPDF = useUploadPDF();
 
-  const handleFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    const newFiles: UploadFile[] = files
-      .filter((file) => file.type === "application/pdf")
-      .map((file) => ({
-        file,
-        id: Math.random().toString(36),
-        progress: 0,
-        status: "pending",
-      }));
-
-    setUploadFiles((prev) => [...prev, ...newFiles]);
-
-    // Reset input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  const removeFile = (id: string) => {
-    setUploadFiles((prev) => prev.filter((f) => f.id !== id));
-  };
-
-  const uploadAllFiles = async () => {
-    const pendingFiles = uploadFiles.filter((f) => f.status === "pending");
-
-    for (const uploadFile of pendingFiles) {
-      // Update status to uploading
-      setUploadFiles((prev) =>
-        prev.map((f) =>
-          f.id === uploadFile.id ? { ...f, status: "uploading", progress: 0 } : f
-        )
-      );
-
-      try {
-        await uploadPDF.mutateAsync({
-          file: uploadFile.file,
-          language,
-          onProgress: ({ progress }) => {
-            setUploadFiles((prev) =>
-              prev.map((f) =>
-                f.id === uploadFile.id ? { ...f, progress } : f
-              )
-            );
-          },
-        });
-
-        // Mark as success
-        setUploadFiles((prev) =>
-          prev.map((f) =>
-            f.id === uploadFile.id
-              ? { ...f, status: "success", progress: 100 }
-              : f
-          )
-        );
-      } catch (error: any) {
-        // Mark as error
-        setUploadFiles((prev) =>
-          prev.map((f) =>
-            f.id === uploadFile.id
-              ? { ...f, status: "error", error: error.message }
-              : f
-          )
-        );
+  const handleSubmit = async () => {
+    setLoading(true);
+    setSuccess(false);
+    try {
+      if (mode === "pdf" && file) {
+        await onUploadPDF(file, language, selectedKB);
+      } else if (mode === "confluence") {
+        await onIngestConfluence(spaceKey, language, selectedKB);
+      } else if (mode === "url") {
+        await onIngestURL(url, language, selectedKB);
       }
-    }
-
-    // Call callback if all uploads completed
-    if (onUploadComplete) {
-      onUploadComplete();
+      setSuccess(true);
+      setFile(null);
+      setSpaceKey("");
+      setUrl("");
+      setTimeout(() => setSuccess(false), 3000);
+    } catch {
+      // Error handling
+    } finally {
+      setLoading(false);
     }
   };
 
-  const hasPendingFiles = uploadFiles.some((f) => f.status === "pending");
-  const isUploading = uploadFiles.some((f) => f.status === "uploading");
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-  };
+  const modes = [
+    { id: "pdf" as UploadMode, icon: FileText, label: "PDF Upload" },
+    { id: "confluence" as UploadMode, icon: Globe, label: "Confluence" },
+    { id: "url" as UploadMode, icon: LinkIcon, label: "URL" },
+  ];
 
   return (
-    <div className={cn("space-y-6", className)}>
-      {/* Upload Area */}
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-        <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <div className="space-y-4">
-          <div>
-            <p className="text-lg font-medium text-gray-900">
-              Tải lên tài liệu PDF
-            </p>
-            <p className="text-sm text-gray-600">
-              Hỗ trợ file PDF, tối đa 25MB mỗi file
-            </p>
-          </div>
+    <div className="glass-card p-6">
+      <h3 className="font-semibold text-white mb-4">Thêm tài liệu mới</h3>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            accept="application/pdf"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
+      {/* Mode selector */}
+      <div className="flex gap-2 mb-5">
+        {modes.map((m) => {
+          const Icon = m.icon;
+          return (
+            <button
+              key={m.id}
+              onClick={() => setMode(m.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                mode === m.id
+                  ? "bg-primary-500/20 text-primary-300 border border-primary-500/30"
+                  : "text-gray-400 border border-white/10 hover:bg-white/5"
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              {m.label}
+            </button>
+          );
+        })}
+      </div>
 
-          <Button
-            onClick={() => fileInputRef.current?.click()}
-            variant="outline"
-            className="gap-2"
+      {/* Common fields */}
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div>
+          <label className="text-xs text-gray-500 mb-1 block">Knowledge Base</label>
+          <select
+            value={selectedKB}
+            onChange={(e) => setSelectedKB(e.target.value)}
+            className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-200 outline-none focus:border-primary-500/50"
           >
-            <Upload className="h-4 w-4" />
-            Chọn file PDF
-          </Button>
+            {knowledgeBases.map((kb) => (
+              <option key={kb.id} value={kb.id}>{kb.name}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="text-xs text-gray-500 mb-1 block">Ngôn ngữ</label>
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-200 outline-none focus:border-primary-500/50"
+          >
+            <option value="vi">Tiếng Việt</option>
+            <option value="ja">日本語</option>
+          </select>
         </div>
       </div>
 
-      {/* File List */}
-      {uploadFiles.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-medium text-gray-900">
-              File đã chọn ({uploadFiles.length})
-            </h3>
-            {hasPendingFiles && (
-              <Button
-                onClick={uploadAllFiles}
-                disabled={isUploading}
-                className="gap-2"
-              >
-                <Upload className="h-4 w-4" />
-                {isUploading ? "Đang tải lên..." : "Tải lên tất cả"}
-              </Button>
-            )}
-          </div>
-
-          <div className="space-y-3">
-            {uploadFiles.map((uploadFile) => (
-              <Card key={uploadFile.id}>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <File className="h-8 w-8 text-red-500 shrink-0" />
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium text-sm truncate">
-                          {uploadFile.file.name}
-                        </p>
-                        <span className="text-xs text-gray-500">
-                          {formatFileSize(uploadFile.file.size)}
-                        </span>
-                      </div>
-
-                      {uploadFile.status === "uploading" && (
-                        <div className="mt-2">
-                          <div className="flex items-center gap-2 text-xs text-gray-600 mb-1">
-                            <span>Đang tải lên...</span>
-                            <span>{uploadFile.progress}%</span>
-                          </div>
-                          <Progress value={uploadFile.progress} />
-                        </div>
-                      )}
-
-                      {uploadFile.status === "error" && (
-                        <p className="text-xs text-red-600 mt-1">
-                          Lỗi: {uploadFile.error}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      {uploadFile.status === "success" && (
-                        <CheckCircle className="h-5 w-5 text-green-500" />
-                      )}
-                      {uploadFile.status === "error" && (
-                        <AlertCircle className="h-5 w-5 text-red-500" />
-                      )}
-                      {uploadFile.status === "pending" && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeFile(uploadFile.id)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+      {/* Mode-specific input */}
+      {mode === "pdf" && (
+        <div
+          onClick={() => fileInputRef.current?.click()}
+          className="border-2 border-dashed border-white/10 rounded-xl p-6 text-center cursor-pointer hover:border-primary-500/30 hover:bg-primary-500/5 transition-all"
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf"
+            onChange={(e) => setFile(e.target.files?.[0] || null)}
+            className="hidden"
+          />
+          {file ? (
+            <div className="flex items-center justify-center gap-2">
+              <FileText className="w-5 h-5 text-red-400" />
+              <span className="text-sm text-gray-200">{file.name}</span>
+              <button onClick={(e) => { e.stopPropagation(); setFile(null); }}>
+                <X className="w-4 h-4 text-gray-500 hover:text-red-400" />
+              </button>
+            </div>
+          ) : (
+            <>
+              <Upload className="w-8 h-8 text-gray-600 mx-auto mb-2" />
+              <p className="text-sm text-gray-400">Click hoặc kéo thả file PDF</p>
+              <p className="text-xs text-gray-600 mt-1">Tối đa 50MB</p>
+            </>
+          )}
         </div>
       )}
+
+      {mode === "confluence" && (
+        <input
+          value={spaceKey}
+          onChange={(e) => setSpaceKey(e.target.value)}
+          placeholder="Confluence Space Key (ví dụ: GEMDOCS)"
+          className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-200 placeholder-gray-600 outline-none focus:border-primary-500/50"
+        />
+      )}
+
+      {mode === "url" && (
+        <input
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="https://example.com/hr-policy"
+          className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-200 placeholder-gray-600 outline-none focus:border-primary-500/50"
+        />
+      )}
+
+      {/* Submit button */}
+      <button
+        onClick={handleSubmit}
+        disabled={loading || (mode === "pdf" && !file) || (mode === "confluence" && !spaceKey) || (mode === "url" && !url)}
+        className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-primary-500 text-white font-medium text-sm disabled:opacity-30 disabled:cursor-not-allowed hover:from-primary-500 hover:to-primary-400 transition-all"
+      >
+        {loading ? (
+          <><Loader2 className="w-4 h-4 animate-spin" /> Đang xử lý...</>
+        ) : success ? (
+          <><CheckCircle2 className="w-4 h-4" /> Thành công!</>
+        ) : (
+          <><Upload className="w-4 h-4" /> Bắt đầu Ingest</>
+        )}
+      </button>
     </div>
   );
 }

@@ -1,112 +1,77 @@
 "use client";
 
-import React from "react";
+import { Bot, User, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { motion } from "framer-motion";
-import { User } from "lucide-react";
-import { useTranslation } from "react-i18next";
-import type { Message } from "@/lib/stores/chatStore";
-import { CitationList } from "./CitationList";
-import { ProcessGuideCard } from "./ProcessGuideCard";
+import type { ChatMessage } from "@/types";
+import CitationPanel from "./CitationPanel";
+import ProcessChecklist from "./ProcessChecklist";
 
-interface Props {
-  message: Message;
+interface MessageBubbleProps {
+  message: ChatMessage;
+  onToggleStep: (messageId: string, stepIndex: number) => void;
 }
 
-/* ─── Typing indicator ─────────────────────────────────────────── */
-function TypingIndicator() {
-  return (
-    <div className="flex items-center gap-1 px-1 py-2">
-      <span className="typing-dot" />
-      <span className="typing-dot" />
-      <span className="typing-dot" />
-    </div>
-  );
-}
-
-/* ─── Main MessageBubble ──────────────────────────────────────────── */
-export default function MessageBubble({ message }: Props) {
-  const { t } = useTranslation();
+export default function MessageBubble({ message, onToggleStep }: MessageBubbleProps) {
   const isUser = message.role === "user";
-  const isEmpty = !message.content && message.isStreaming;
 
   return (
-    <motion.div
-      className={`flex gap-3 ${isUser ? "flex-row-reverse" : "flex-row"}`}
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, ease: "easeOut" }}
-    >
-      {/* Avatar */}
+    <div className={`flex gap-3 ${isUser ? "" : ""} animate-fade-in`}>
       <div
-        className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+        className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
           isUser
-            ? "bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg shadow-blue-200"
-            : "bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-orange-200"
+            ? "bg-gray-700"
+            : "bg-gradient-to-br from-primary-500 to-accent-500"
         }`}
       >
         {isUser ? (
-          <User size={14} color="#fff" />
+          <User className="w-4 h-4 text-gray-300" />
         ) : (
-          <span className="text-sm">✨</span>
+          <Bot className="w-4 h-4 text-white" />
         )}
       </div>
 
-      {/* Bubble */}
-      <div className="flex-1 max-w-[85%]">
+      <div className="flex-1 min-w-0 space-y-1">
+        <span className="text-xs text-gray-500">
+          {isUser ? "Bạn" : "HR Copilot"}
+        </span>
+
         <div
           className={`rounded-2xl px-4 py-3 ${
             isUser
-              ? "bg-gradient-to-br from-blue-600 to-purple-700 text-white shadow-lg shadow-blue-200"
-              : "bg-gray-50 border border-gray-200 shadow-sm"
+              ? "bg-primary-500/15 border border-primary-500/20"
+              : "bg-white/5 border border-white/10"
           }`}
-          style={{
-            borderTopLeftRadius: isUser ? undefined : "4px",
-            borderTopRightRadius: isUser ? "4px" : undefined,
-          }}
         >
-          {/* Process guide above content (assistant only) */}
-          {!isUser && message.processGuide && (
-            <ProcessGuideCard guide={message.processGuide} />
-          )}
-
-          {/* Content */}
-          {isEmpty ? (
-            <TypingIndicator />
-          ) : isUser ? (
-            <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-          ) : (
-            <div className="prose prose-sm max-w-none text-gray-900">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {message.content}
-              </ReactMarkdown>
+          {message.content ? (
+            <div className="markdown-content text-sm text-gray-200">
+              <ReactMarkdown>{message.content}</ReactMarkdown>
             </div>
-          )}
+          ) : message.isStreaming ? (
+            <div className="flex items-center gap-2 text-gray-500">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span className="text-sm">Đang suy nghĩ...</span>
+            </div>
+          ) : null}
 
-          {/* Citations (assistant only) */}
-          {!isUser && message.citations && message.citations.length > 0 && (
-            <CitationList citations={message.citations} />
+          {message.isStreaming && message.content && (
+            <span className="inline-block w-1.5 h-4 bg-primary-400 animate-typing ml-0.5 align-middle rounded-sm" />
           )}
         </div>
 
-        {/* Confidence (assistant only) */}
-        {!isUser && !message.isStreaming && message.content && message.confidence != null && message.confidence > 0 && (
-          <div className="flex items-center gap-3 mt-1.5 px-1">
-            <span
-              className={`text-xs px-2 py-0.5 rounded-full border ${
-                message.confidence > 0.7
-                  ? "bg-green-50 text-green-700 border-green-200"
-                  : message.confidence > 0.4
-                  ? "bg-yellow-50 text-yellow-700 border-yellow-200"
-                  : "bg-gray-50 text-gray-600 border-gray-200"
-              }`}
-            >
-              {Math.round(message.confidence * 100)}% {t("chat.confidence")}
-            </span>
-          </div>
+        {/* Process Checklist */}
+        {message.process_steps && message.process_steps.length > 0 && (
+          <ProcessChecklist
+            steps={message.process_steps}
+            messageId={message.id}
+            onToggle={onToggleStep}
+          />
+        )}
+
+        {/* Citations */}
+        {message.citations && message.citations.length > 0 && (
+          <CitationPanel citations={message.citations} />
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
