@@ -1,32 +1,27 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Providers } from "./providers";
+import Navbar from "@/components/ui/Navbar";
 
-const inter = Inter({
-  subsets: ["latin", "vietnamese"],
-  variable: "--font-inter",
-  display: "swap",
-});
+const inter = Inter({ subsets: ["latin", "vietnamese"] });
 
 export const metadata: Metadata = {
-  title: "GEM HR Copilot Pro",
-  description: "AI-powered HR assistant for GEM Corporation — bilingual Vietnamese & Japanese policy search",
-  keywords: ["HR", "policy", "AI", "assistant", "GEM", "copilot"],
-  openGraph: {
-    title: "GEM HR Copilot Pro",
-    description: "AI-powered bilingual HR assistant",
-    type: "website",
-  },
+  title: "GEM HR Copilot Pro - AI HR Assistant",
+  description:
+    "Trợ lý AI HR thông minh cho GEM Corp. Tìm kiếm chính sách, hướng dẫn quy trình, hỗ trợ nhân viên 24/7 bằng tiếng Việt và tiếng Nhật.",
+  keywords: ["HR", "AI", "Copilot", "GEM Corp", "Vietnam", "Japan"],
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="vi" className={`${inter.variable} h-full`}>
-      <body className="min-h-full flex flex-col antialiased">
-        <Providers>{children}</Providers>
+    <html lang="vi" className="dark">
+      <body className={inter.className}>
+        <Navbar />
+        {children}
       </body>
     </html>
   );
