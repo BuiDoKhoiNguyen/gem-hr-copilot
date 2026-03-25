@@ -1,7 +1,6 @@
 import type {
   KnowledgeBase,
   Document,
-  Dialog,
   IngestStatus,
   IngestStats,
   QuickPrompts,
@@ -18,8 +17,59 @@ async function fetchAPI<T>(path: string, options?: RequestInit): Promise<T> {
     headers: { "Content-Type": "application/json" },
     ...options,
   });
-  if (!res.ok) throw new Error(`API Error: ${res.status} ${res.statusText}`);
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      const errBody = await res.json();
+      if (typeof errBody?.detail === "string") detail = errBody.detail;
+      else if (Array.isArray(errBody?.detail))
+        detail = errBody.detail.map((x: { msg?: string }) => x.msg).join("; ");
+    } catch {
+      /* ignore */
+    }
+    throw new Error(`API Error: ${res.status} ${detail}`);
+  }
   return res.json();
+}
+
+/** Chuẩn hóa JSON từ SQLAlchemy / FastAPI → type FE */
+export function mapKnowledgeBaseRow(row: Record<string, unknown>): KnowledgeBase {
+  return {
+    id: String(row.id),
+    name: String(row.name ?? ""),
+    language: String(row.language ?? "vi"),
+    embed_model: String(row.embed_model ?? "bge-m3"),
+    description: row.description != null ? String(row.description) : undefined,
+    created_at: String(row.created_at ?? ""),
+    updated_at: String(row.updated_at ?? ""),
+  };
+}
+
+/** BE dùng `run` (pending|running|done|failed); UI dùng status + processing */
+export function mapDocumentRow(
+  row: Record<string, unknown>,
+  kbLanguage: string
+): Document {
+  const run = String(row.run ?? "pending");
+  const status =
+    run === "done"
+      ? "completed"
+      : run === "failed"
+        ? "failed"
+        : run === "running"
+          ? "processing"
+          : "pending";
+  return {
+    id: String(row.id),
+    name: String(row.name ?? ""),
+    source_type: String(row.source_type ?? "pdf"),
+    language: kbLanguage,
+    status,
+    progress: Number(row.progress ?? 0),
+    chunk_count: Number(row.chunk_num ?? 0),
+    content_hash: String(row.content_hash ?? ""),
+    created_at: String(row.created_at ?? ""),
+  };
 }
 
 function normalizeCitation(raw: Record<string, unknown>): Citation {
@@ -97,6 +147,7 @@ export interface StreamCallbacks {
   onProcessGuide: (steps: NonNullable<ChatMessage["process_steps"]>) => void;
   onSessionId: (sessionId: string) => void;
   onLanguage: (lang: string) => void;
+  onQueryRewrite: (original: string, rewritten: string) => void;
   onDone: () => void;
   onMessageId: (messageId: string) => void;
   onError: (error: string) => void;
@@ -139,6 +190,18 @@ function dispatchSseEvent(event: string, dataStr: string, callbacks: StreamCallb
           ? String((payload as { language: string }).language)
           : String(payload ?? "");
       callbacks.onLanguage(lang);
+      break;
+    }
+    case "query_rewrite": {
+      if (
+        typeof payload === "object" &&
+        payload !== null &&
+        "original" in payload &&
+        "rewritten" in payload
+      ) {
+        const p = payload as { original: string; rewritten: string };
+        callbacks.onQueryRewrite(p.original, p.rewritten);
+      }
       break;
     }
     case "citations": {
@@ -195,16 +258,22 @@ function dispatchSseEvent(event: string, dataStr: string, callbacks: StreamCallb
   }
 }
 
+export interface ChatOptions {
+  searchAllLanguages?: boolean;
+}
+
 export async function streamChat(
   query: string,
   sessionId: string | null,
   language: string | undefined,
   callbacks: StreamCallbacks,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  options?: ChatOptions
 ) {
   const body: Record<string, unknown> = { query };
   if (sessionId) body.session_id = sessionId;
   if (language) body.language = language;
+  if (options?.searchAllLanguages) body.search_all_languages = true;
 
   const res = await fetch(`${API_BASE}/api/chat/`, {
     method: "POST",
@@ -264,7 +333,10 @@ export async function getQuickPrompts(): Promise<QuickPrompts> {
 
 // ─── Knowledge Base ───────────────────────────────────────────────
 export async function listKnowledgeBases(): Promise<KnowledgeBase[]> {
-  return fetchAPI<KnowledgeBase[]>("/api/kb/");
+  const rows = await fetchAPI<unknown[]>("/api/kb/");
+  return rows.map((r) =>
+    mapKnowledgeBaseRow(typeof r === "object" && r ? (r as Record<string, unknown>) : {})
+  );
 }
 
 export async function createKnowledgeBase(
@@ -282,8 +354,11 @@ export async function deleteKnowledgeBase(kbId: string) {
   });
 }
 
-export async function listDocuments(kbId: string): Promise<Document[]> {
-  return fetchAPI<Document[]>(`/api/kb/${kbId}/documents`);
+export async function listDocuments(kbId: string, kbLanguage: string): Promise<Document[]> {
+  const rows = await fetchAPI<unknown[]>(`/api/kb/${kbId}/documents`);
+  return rows.map((r) =>
+    mapDocumentRow(typeof r === "object" && r ? (r as Record<string, unknown>) : {}, kbLanguage)
+  );
 }
 
 // ─── Ingest ───────────────────────────────────────────────────────
@@ -301,7 +376,69 @@ export async function uploadPDF(
     method: "POST",
     body: form,
   });
-  return res.json();
+  const data = (await res.json()) as IngestStatus & { detail?: unknown };
+  if (!res.ok) {
+    const msg =
+      typeof data.detail === "string"
+        ? data.detail
+        : `Upload failed: ${res.status}`;
+    throw new Error(msg);
+  }
+  return data;
+}
+
+export interface BatchFileStatus {
+  filename: string;
+  job_id: string;
+  status: string;
+  message: string;
+}
+
+export interface BatchIngestResponse {
+  total_files: number;
+  queued: number;
+  skipped: number;
+  files: BatchFileStatus[];
+}
+
+export async function uploadPDFBatch(
+  files: File[],
+  language = "vi",
+  kbId?: string
+): Promise<BatchIngestResponse> {
+  const form = new FormData();
+  files.forEach((f) => form.append("files", f));
+  form.append("language", language);
+  if (kbId) form.append("kb_id", kbId);
+
+  const res = await fetch(`${API_BASE}/api/ingest/pdf/batch`, {
+    method: "POST",
+    body: form,
+  });
+  const data = (await res.json()) as BatchIngestResponse & { detail?: unknown };
+  if (!res.ok) {
+    const msg =
+      typeof data.detail === "string"
+        ? data.detail
+        : `Batch upload failed: ${res.status}`;
+    throw new Error(msg);
+  }
+  return data;
+}
+
+export async function waitIngestComplete(
+  jobId: string,
+  options?: { intervalMs?: number; timeoutMs?: number }
+): Promise<IngestStatus> {
+  const intervalMs = options?.intervalMs ?? 1500;
+  const timeoutMs = options?.timeoutMs ?? 900_000;
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    const st = await getIngestStatus(jobId);
+    if (st.status === "done" || st.status === "failed") return st;
+    if (Date.now() > deadline) throw new Error("Hết thời gian chờ ingest");
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
 }
 
 export async function ingestConfluence(
@@ -334,9 +471,41 @@ export async function getIngestStats(): Promise<IngestStats> {
   return fetchAPI<IngestStats>("/api/ingest/stats");
 }
 
-// ─── Dialogs ──────────────────────────────────────────────────────
-export async function listDialogs(): Promise<Dialog[]> {
-  return fetchAPI<Dialog[]>("/api/dialogs/");
+// ─── Feedback ─────────────────────────────────────────────────────
+export interface FeedbackRequest {
+  message_id: string;
+  session_id: string;
+  rating: -1 | 0 | 1;
+  reason?: string;
+  additional_comment?: string;
+}
+
+export interface FeedbackResponse {
+  feedback_id: string;
+  message_id: string;
+  rating: number;
+  created_at: string;
+}
+
+export interface FeedbackStats {
+  total_feedbacks: number;
+  positive: number;
+  negative: number;
+  neutral: number;
+  deflection_rate: number;
+  description?: string;
+  error?: string;
+}
+
+export async function submitFeedback(data: FeedbackRequest): Promise<FeedbackResponse> {
+  return fetchAPI<FeedbackResponse>("/api/chat/feedback", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getFeedbackStats(): Promise<FeedbackStats> {
+  return fetchAPI<FeedbackStats>("/api/chat/feedback/stats");
 }
 
 export { USE_MOCK };

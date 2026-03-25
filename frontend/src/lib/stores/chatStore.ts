@@ -2,7 +2,8 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { ChatMessage, ConversationMeta } from "@/types";
 import { createWelcomeMessages, getMockResponse } from "@/lib/mock-data";
-import { streamChat, getSessionMessages, USE_MOCK } from "@/lib/api";
+import { streamChat, getSessionMessages, submitFeedback, USE_MOCK } from "@/lib/api";
+import type { ChatOptions, FeedbackRequest } from "@/lib/api";
 
 function newLocalId(): string {
   if (typeof globalThis !== "undefined" && globalThis.crypto?.randomUUID) {
@@ -38,6 +39,7 @@ interface ChatState {
   activeConversationId: string | null;
   messagesById: Record<string, ChatMessage[]>;
   language: string;
+  searchAllLanguages: boolean;
   isLoading: boolean;
   error: string | null;
   abortController: AbortController | null;
@@ -52,6 +54,8 @@ interface ChatState {
   stopGeneration: () => void;
   toggleStepComplete: (messageId: string, stepIndex: number) => void;
   setLanguage: (lang: string) => void;
+  setSearchAllLanguages: (enabled: boolean) => void;
+  submitMessageFeedback: (messageId: string, rating: -1 | 0 | 1, reason?: string) => Promise<boolean>;
 }
 
 const initialBundle = createFreshConversation();
@@ -63,6 +67,7 @@ export const useChatStore = create<ChatState>()(
       activeConversationId: initialBundle.meta.id,
       messagesById: { [initialBundle.meta.id]: initialBundle.messages },
       language: "vi",
+      searchAllLanguages: false,
       isLoading: false,
       error: null,
       abortController: null,
@@ -315,6 +320,10 @@ export const useChatStore = create<ChatState>()(
               },
               onSessionId: (sid) => applyServerSession(sid),
               onLanguage: (lang) => set({ language: lang }),
+              onQueryRewrite: (_original, rewritten) => {
+                // Optional: show rewritten query in UI if needed
+                console.log("[Query Rewrite]", rewritten);
+              },
               onDone: () => {
                 patchAssistant((last) => ({ ...last, isStreaming: false }));
                 const aid = get().activeConversationId;
@@ -353,7 +362,8 @@ export const useChatStore = create<ChatState>()(
                   abortController: null,
                 }),
             },
-            controller.signal
+            controller.signal,
+            { searchAllLanguages: get().searchAllLanguages }
           );
         } catch {
           set({ isLoading: false, abortController: null });
@@ -399,6 +409,29 @@ export const useChatStore = create<ChatState>()(
       },
 
       setLanguage: (lang: string) => set({ language: lang }),
+
+      setSearchAllLanguages: (enabled: boolean) => set({ searchAllLanguages: enabled }),
+
+      submitMessageFeedback: async (messageId: string, rating: -1 | 0 | 1, reason?: string): Promise<boolean> => {
+        const sessionId = get().activeConversationId;
+        if (!sessionId || sessionId.startsWith("local-")) {
+          console.warn("Cannot submit feedback for local session");
+          return false;
+        }
+
+        try {
+          await submitFeedback({
+            message_id: messageId,
+            session_id: sessionId,
+            rating,
+            reason,
+          });
+          return true;
+        } catch (err) {
+          console.error("Failed to submit feedback:", err);
+          return false;
+        }
+      },
     }),
     {
       name: "gem-hr-copilot-chat",
@@ -408,6 +441,7 @@ export const useChatStore = create<ChatState>()(
         messagesById: state.messagesById,
         activeConversationId: state.activeConversationId,
         language: state.language,
+        searchAllLanguages: state.searchAllLanguages,
       }),
       skipHydration: true,
     }

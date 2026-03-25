@@ -1,0 +1,51 @@
+[project]
+name = "gem-hr-copilot-backend"
+version = "0.1.0"
+description = "Backend for GEM HR Copilot"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.34.0",
+    "pydantic>=2.10.0",
+    "pydantic-settings>=2.7.0",
+    "python-dotenv>=1.0.0",
+    "python-multipart>=0.0.18",
+    "langgraph>=0.4.0",
+    "langchain>=0.3.0",
+    "langchain-openai>=0.3.0",
+    "langchain-community>=0.3.0",
+    "langchain-elasticsearch>=0.3.0",
+    "openai>=1.45.0",
+    "elasticsearch[async]>=8.14.0",
+    "sqlalchemy[asyncio]>=2.0.0",
+    "asyncpg>=0.30.0",
+    "alembic>=1.13.0",
+    "docling>=2.0.0",
+    "pdfplumber>=0.10.4",
+    "python-docx>=1.1.2",
+    "atlassian-python-api>=4.0.7",
+    "mammoth>=1.11.0",
+    "beautifulsoup4>=4.12.0",
+    "markdownify>=0.13.0",
+    "lxml>=5.3.0",
+    "langdetect>=1.0.9",
+    "tiktoken>=0.7.0",
+    "xxhash>=3.4.1",
+    "httpx>=0.28.0",
+    "aiofiles>=24.1.0"
+]
+
+[tool.ruff]
+line-length = 200
+
+[tool.ruff.lint]
+extend-select = ["ASYNC", "ASYNC1"]
+
+[tool.pytest.ini_options]
+pythonpath = [
+    "."
+]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

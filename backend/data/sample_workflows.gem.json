@@ -1,0 +1,546 @@
+{
+  "workflows": {
+    "annual_leave": {
+      "vi": {
+        "title": "Quy trình xin nghỉ phép năm",
+        "steps": [
+          {
+            "step": 1,
+            "action": "Đăng nhập Base.vn",
+            "url": "https://base.vn/",
+            "note": null
+          },
+          {
+            "step": 2,
+            "action": "Chọn menu 'Đăng ký nghỉ phép'",
+            "url": null,
+            "note": "Cần đăng ký trước ít nhất 3 ngày làm việc"
+          },
+          {
+            "step": 3,
+            "action": "Điền form: ngày bắt đầu, ngày kết thúc, lý do",
+            "url": null,
+            "note": null
+          },
+          {
+            "step": 4,
+            "action": "Nhấn Submit → Chờ Line Manager phê duyệt (tối đa 2 ngày làm việc)",
+            "url": null,
+            "note": null
+          },
+          {
+            "step": 5,
+            "action": "Nhận email xác nhận từ hệ thống HR",
+            "url": null,
+            "note": "Kiểm tra cả folder Spam"
+          }
+        ],
+        "policy_url": "https://confluence.gem-corp.tech/display/GEM/leave-policy",
+        "contact": "hr@gem-corp.tech"
+      },
+      "ja": {
+        "title": "年次有給休暇の申請手順",
+        "steps": [
+          {
+            "step": 1,
+            "action": "HRポータルにログイン",
+            "url": "https://hr.gem-corp.tech",
+            "note": null
+          },
+          {
+            "step": 2,
+            "action": "「休暇申請」メニューを選択",
+            "url": null,
+            "note": "少なくとも3営業日前に申請"
+          },
+          {
+            "step": 3,
+            "action": "開始日・終了日・理由を入力",
+            "url": null,
+            "note": null
+          },
+          {
+            "step": 4,
+            "action": "送信 → ラインマネージャーの承認を待つ（最大2営業日）",
+            "url": null,
+            "note": null
+          },
+          {
+            "step": 5,
+            "action": "HRシステムから確認メールを受取る",
+            "url": null,
+            "note": null
+          }
+        ],
+        "policy_url": "https://confluence.gem-corp.tech/display/GEMJPN/leave",
+        "contact": "hr-japan@gem-corp.tech"
+      }
+    },
+    "health_insurance_claim": {
+      "vi": {
+        "title": "Quy trình bồi thường bảo hiểm sức khỏe BSH",
+        "steps": [
+          {
+            "step": 1,
+            "action": "Chuẩn bị hồ sơ: hóa đơn viện phí gốc, giấy ra viện, đơn thuốc",
+            "url": null,
+            "note": "Hóa đơn phải là bản gốc, không chấp nhận photocopy"
+          },
+          {
+            "step": 2,
+            "action": "Điền form yêu cầu bồi thường BSH",
+            "url": "https://confluence.gem-corp.tech/display/GEM/bsh-form",
+            "note": "Tải form tại link"
+          },
+          {
+            "step": 3,
+            "action": "Nộp hồ sơ cho HR (scan + email hoặc bản gốc)",
+            "url": null,
+            "note": "Email: benefits@gem-corp.tech"
+          },
+          {
+            "step": 4,
+            "action": "HR gửi hồ sơ cho BSH (trong vòng 5 ngày làm việc)",
+            "url": null,
+            "note": null
+          },
+          {
+            "step": 5,
+            "action": "BSH xử lý và chuyển tiền (7-15 ngày làm việc)",
+            "url": null,
+            "note": null
+          }
+        ],
+        "policy_url": "https://confluence.gem-corp.tech/display/GEM/bsh-2025",
+        "contact": "benefits@gem-corp.tech"
+      },
+      "ja": {
+        "title": "BSH健康保険の請求手順",
+        "steps": [
+          {
+            "step": 1,
+            "action": "必要書類を準備：領収書原本・退院証明書・処方箋",
+            "url": null,
+            "note": "領収書は原本のみ有効（コピー不可）"
+          },
+          {
+            "step": 2,
+            "action": "BSH請求フォームに記入",
+            "url": "https://confluence.gem-corp.tech/display/GEMJPN/bsh-form",
+            "note": "リンクからフォームをダウンロード"
+          },
+          {
+            "step": 3,
+            "action": "HRに書類を提出（スキャン＋メールまたは原本）",
+            "url": null,
+            "note": "メール: benefits-japan@gem-corp.tech"
+          },
+          {
+            "step": 4,
+            "action": "HRがBSHに書類を送付（5営業日以内）",
+            "url": null,
+            "note": null
+          },
+          {
+            "step": 5,
+            "action": "BSHが処理・振込（7〜15営業日）",
+            "url": null,
+            "note": null
+          }
+        ],
+        "policy_url": "https://confluence.gem-corp.tech/display/GEMJPN/bsh-2025",
+        "contact": "benefits-japan@gem-corp.tech"
+      }
+    },
+    "expense_reimbursement": {
+      "vi": {
+        "title": "Quy trình hoàn ứng / thanh toán chi phí công tác",
+        "steps": [
+          {
+            "step": 1,
+            "action": "Tập hợp hóa đơn, biên lai (bản gốc)",
+            "url": null,
+            "note": "Deadline nộp: cuối tháng"
+          },
+          {
+            "step": 2,
+            "action": "Điền form expense report trên HR Portal",
+            "url": "https://hr.gem-corp.tech/expense",
+            "note": null
+          },
+          {
+            "step": 3,
+            "action": "Upload scan hóa đơn đính kèm form",
+            "url": null,
+            "note": "File PDF/JPG, tối đa 10MB"
+          },
+          {
+            "step": 4,
+            "action": "Line Manager review & approve (3 ngày làm việc)",
+            "url": null,
+            "note": null
+          },
+          {
+            "step": 5,
+            "action": "Finance xử lý thanh toán vào kỳ lương tiếp theo",
+            "url": null,
+            "note": null
+          }
+        ],
+        "policy_url": "https://confluence.gem-corp.tech/display/GEM/expense-policy",
+        "contact": "finance@gem-corp.tech"
+      },
+      "ja": {
+        "title": "経費精算・立替払い手順",
+        "steps": [
+          {
+            "step": 1,
+            "action": "領収書・レシートを収集（原本）",
+            "url": null,
+            "note": "提出期限：月末"
+          },
+          {
+            "step": 2,
+            "action": "HRポータルで経費精算フォームに記入",
+            "url": "https://hr.gem-corp.tech/expense",
+            "note": null
+          },
+          {
+            "step": 3,
+            "action": "スキャンした領収書をフォームに添付",
+            "url": null,
+            "note": "PDF/JPG形式、最大10MB"
+          },
+          {
+            "step": 4,
+            "action": "ラインマネージャーの確認・承認（3営業日）",
+            "url": null,
+            "note": null
+          },
+          {
+            "step": 5,
+            "action": "経理部が次回給与で精算処理",
+            "url": null,
+            "note": null
+          }
+        ],
+        "policy_url": "https://confluence.gem-corp.tech/display/GEMJPN/expense-policy",
+        "contact": "finance-japan@gem-corp.tech"
+      }
+    },
+    "maternity_leave": {
+      "vi": {
+        "title": "Quy trình xin nghỉ thai sản",
+        "steps": [
+          {
+            "step": 1,
+            "action": "Thông báo với Line Manager và HR ít nhất 30 ngày trước",
+            "url": null,
+            "note": "Kèm giấy xác nhận thai của bác sĩ"
+          },
+          {
+            "step": 2,
+            "action": "Nộp đơn xin nghỉ thai sản (form HR-MS-01)",
+            "url": "https://confluence.gem-corp.tech/display/GEM/maternity",
+            "note": null
+          },
+          {
+            "step": 3,
+            "action": "HR xác nhận quyền lợi: 6 tháng nghỉ + hỗ trợ từ BHXH",
+            "url": null,
+            "note": null
+          },
+          {
+            "step": 4,
+            "action": "Ký phụ lục hợp đồng điều chỉnh (nếu cần)",
+            "url": null,
+            "note": null
+          },
+          {
+            "step": 5,
+            "action": "Bàn giao công việc và chuẩn bị handover document",
+            "url": null,
+            "note": null
+          }
+        ],
+        "policy_url": "https://confluence.gem-corp.tech/display/GEM/maternity-policy",
+        "contact": "hr@gem-corp.tech"
+      },
+      "ja": {
+        "title": "産前産後休暇の申請手順",
+        "steps": [
+          {
+            "step": 1,
+            "action": "ラインマネージャーとHRに30日前までに通知",
+            "url": null,
+            "note": "医師の妊娠証明書を添付"
+          },
+          {
+            "step": 2,
+            "action": "産休申請書（フォームHR-MS-01）を提出",
+            "url": "https://confluence.gem-corp.tech/display/GEMJPN/maternity",
+            "note": null
+          },
+          {
+            "step": 3,
+            "action": "HRが権利を確認：6ヶ月の休暇＋社会保険からの支援",
+            "url": null,
+            "note": null
+          },
+          {
+            "step": 4,
+            "action": "雇用契約の変更覚書に署名（必要な場合）",
+            "url": null,
+            "note": null
+          },
+          {
+            "step": 5,
+            "action": "業務の引継ぎとハンドオーバー文書の準備",
+            "url": null,
+            "note": null
+          }
+        ],
+        "policy_url": "https://confluence.gem-corp.tech/display/GEMJPN/maternity-policy",
+        "contact": "hr-japan@gem-corp.tech"
+      }
+    },
+    "onboarding": {
+      "vi": {
+        "title": "Checklist Onboarding nhân viên mới",
+        "steps": [
+          {
+            "step": 1,
+            "action": "Nhận thiết bị làm việc từ IT (laptop, card từ)",
+            "url": null,
+            "note": "Liên hệ: it-support@gem-corp.tech"
+          },
+          {
+            "step": 2,
+            "action": "Hoàn thành setup tài khoản: email, Slack, Jira, Confluence",
+            "url": null,
+            "note": null
+          },
+          {
+            "step": 3,
+            "action": "Đọc GEMERS' Guidebook và Nội Quy Công Ty",
+            "url": "https://confluence.gem-corp.tech/display/GEM",
+            "note": "Bắt buộc ký xác nhận"
+          },
+          {
+            "step": 4,
+            "action": "Tham gia buổi orientation với HR (ngày đầu tiên)",
+            "url": null,
+            "note": null
+          },
+          {
+            "step": 5,
+            "action": "1-on-1 với Line Manager: set KPI tuần 1",
+            "url": null,
+            "note": null
+          }
+        ],
+        "policy_url": "https://confluence.gem-corp.tech/display/GEM/onboarding",
+        "contact": "hr@gem-corp.tech"
+      },
+      "ja": {
+        "title": "新入社員オンボーディングチェックリスト",
+        "steps": [
+          {
+            "step": 1,
+            "action": "ITから業務用機器を受け取る（ノートPC・ICカード）",
+            "url": null,
+            "note": "連絡先: it-support@gem-corp.tech"
+          },
+          {
+            "step": 2,
+            "action": "アカウント設定を完了：メール、Slack、Jira、Confluence",
+            "url": null,
+            "note": null
+          },
+          {
+            "step": 3,
+            "action": "GEMERSガイドブックと社内規定を読む",
+            "url": "https://confluence.gem-corp.tech/display/GEMJPN",
+            "note": "確認署名が必要"
+          },
+          {
+            "step": 4,
+            "action": "HRオリエンテーションに参加（初日）",
+            "url": null,
+            "note": null
+          },
+          {
+            "step": 5,
+            "action": "ラインマネージャーと1on1：初週のKPIを設定",
+            "url": null,
+            "note": null
+          }
+        ],
+        "policy_url": "https://confluence.gem-corp.tech/display/GEMJPN/onboarding",
+        "contact": "hr-japan@gem-corp.tech"
+      }
+    },
+    "remote_work": {
+      "vi": {
+        "title": "Chính sách làm việc từ xa / Hybrid / Làm việc ở nước ngoài",
+        "steps": [
+          {
+            "step": 1,
+            "action": "Kiểm tra chính sách hybrid/remote tại trang HR Portal",
+            "url": "https://confluence.gem-corp.tech/display/GEM/remote-work-policy",
+            "note": "Mỗi team có thể có quy định riêng"
+          },
+          {
+            "step": 2,
+            "action": "Nếu làm việc từ nước ngoài: gửi đề xuất đến Line Manager + HR",
+            "url": null,
+            "note": "Cần được phê duyệt trước ít nhất 2 tuần"
+          },
+          {
+            "step": 3,
+            "action": "HR kiểm tra pháp lý, thuế, visa nước sở tại",
+            "url": null,
+            "note": "Thời gian làm việc ở nước ngoài tối đa: 90 ngày/năm (tùy quốc gia)"
+          },
+          {
+            "step": 4,
+            "action": "Ký phụ lục hợp đồng điều chỉnh địa điểm làm việc (nếu cần)",
+            "url": null,
+            "note": null
+          },
+          {
+            "step": 5,
+            "action": "Đảm bảo VPN, bảo mật thông tin và múi giờ làm việc phù hợp",
+            "url": "https://confluence.gem-corp.tech/display/GEM/it-security",
+            "note": "Liên hệ IT: it-support@gem-corp.tech"
+          }
+        ],
+        "policy_url": "https://confluence.gem-corp.tech/display/GEM/remote-work-policy",
+        "contact": "hr@gem-corp.tech"
+      },
+      "ja": {
+        "title": "リモートワーク・ハイブリッド・海外勤務ポリシー",
+        "steps": [
+          {
+            "step": 1,
+            "action": "HRポータルでハイブリッド/リモートポリシーを確認",
+            "url": "https://confluence.gem-corp.tech/display/GEMJPN/remote-work-policy",
+            "note": "チームごとに異なるルールがある場合があります"
+          },
+          {
+            "step": 2,
+            "action": "海外勤務の場合：ラインマネージャーとHRに申請を提出",
+            "url": null,
+            "note": "少なくとも2週間前に承認が必要"
+          },
+          {
+            "step": 3,
+            "action": "HRが現地の法律・税金・ビザを確認",
+            "url": null,
+            "note": "海外勤務の最大期間：年間90日（国による）"
+          },
+          {
+            "step": 4,
+            "action": "勤務地変更の雇用契約変更覚書に署名（必要な場合）",
+            "url": null,
+            "note": null
+          },
+          {
+            "step": 5,
+            "action": "VPN、情報セキュリティ、適切なタイムゾーンでの勤務を確保",
+            "url": "https://confluence.gem-corp.tech/display/GEMJPN/it-security",
+            "note": "IT連絡先: it-support@gem-corp.tech"
+          }
+        ],
+        "policy_url": "https://confluence.gem-corp.tech/display/GEMJPN/remote-work-policy",
+        "contact": "hr-japan@gem-corp.tech"
+      }
+    }
+  },
+  "intent_keywords": {
+    "annual_leave": [
+      "nghỉ phép",
+      "xin phép",
+      "ngày phép",
+      "nghỉ hàng năm",
+      "annual leave",
+      "有給",
+      "休暇申請",
+      "年次休暇",
+      "年休",
+      "休みを取る"
+    ],
+    "health_insurance_claim": [
+      "bảo hiểm",
+      "bsh",
+      "bồi thường",
+      "viện phí",
+      "khám bệnh",
+      "claim",
+      "保険",
+      "医療費",
+      "保険請求",
+      "健康保険",
+      "請求手続き"
+    ],
+    "expense_reimbursement": [
+      "hoàn ứng",
+      "thanh toán",
+      "chi phí công tác",
+      "expense",
+      "reimbursement",
+      "hóa đơn",
+      "経費精算",
+      "立替",
+      "経費",
+      "精算"
+    ],
+    "maternity_leave": [
+      "thai sản",
+      "nghỉ sinh",
+      "maternity",
+      "bầu",
+      "sinh con",
+      "産休",
+      "育休",
+      "産前産後",
+      "出産休暇",
+      "育児休暇"
+    ],
+    "onboarding": [
+      "onboarding",
+      "nhân viên mới",
+      "checklist",
+      "mới vào",
+      "first day",
+      "新入",
+      "オンボーディング",
+      "入社",
+      "新人研修",
+      "初日"
+    ],
+    "remote_work": [
+      "làm việc từ xa",
+      "remote",
+      "work from home",
+      "wfh",
+      "hybrid",
+      "làm ở nhà",
+      "nước ngoài",
+      "quốc gia khác",
+      "overseas",
+      "abroad",
+      "work abroad",
+      "công tác nước ngoài",
+      "làm việc ở nước khác",
+      "di chuyển quốc tế",
+      "リモート",
+      "在宅勤務",
+      "海外勤務",
+      "テレワーク",
+      "ハイブリッド",
+      "国外",
+      "海外で働く"
+    ]
+  }
+}

@@ -65,17 +65,6 @@ export interface Document {
   created_at: string;
 }
 
-export interface Dialog {
-  id: string;
-  name: string;
-  language: string;
-  llm_model: string;
-  kb_ids: string[];
-  description?: string;
-  top_k: number;
-  top_n: number;
-}
-
 export interface IngestStatus {
   job_id: string;
   status: string;

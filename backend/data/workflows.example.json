@@ -1,0 +1,22 @@
+{
+  "workflows": {
+    "your_workflow_id": {
+      "vi": {
+        "title": "Tiêu đề hiển thị",
+        "steps": [
+          {
+            "step": 1,
+            "action": "Mô tả bước",
+            "url": null,
+            "note": "Ghi chú tuỳ chọn"
+          }
+        ],
+        "policy_url": "https://confluence.company.com/...",
+        "contact": "hr@company.com"
+      }
+    }
+  },
+  "intent_keywords": {
+    "your_workflow_id": ["từ khóa 1", "keyword"]
+  }
+}

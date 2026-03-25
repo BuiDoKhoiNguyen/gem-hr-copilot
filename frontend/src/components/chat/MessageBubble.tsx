@@ -1,6 +1,7 @@
 "use client";
 
-import { Bot, User, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Bot, User, Loader2, ThumbsUp, ThumbsDown, Check } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { ChatMessage } from "@/types";
 import CitationPanel from "./CitationPanel";
@@ -9,10 +10,27 @@ import ProcessChecklist from "./ProcessChecklist";
 interface MessageBubbleProps {
   message: ChatMessage;
   onToggleStep: (messageId: string, stepIndex: number) => void;
+  onFeedback?: (messageId: string, rating: -1 | 0 | 1, reason?: string) => Promise<boolean>;
 }
 
-export default function MessageBubble({ message, onToggleStep }: MessageBubbleProps) {
+export default function MessageBubble({ message, onToggleStep, onFeedback }: MessageBubbleProps) {
   const isUser = message.role === "user";
+  const [feedbackGiven, setFeedbackGiven] = useState<-1 | 0 | 1 | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleFeedback = async (rating: -1 | 1) => {
+    if (!onFeedback || feedbackGiven !== null || isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      const success = await onFeedback(message.id, rating);
+      if (success) {
+        setFeedbackGiven(rating);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className={`flex gap-3 ${isUser ? "" : ""} animate-fade-in`}>
@@ -70,6 +88,40 @@ export default function MessageBubble({ message, onToggleStep }: MessageBubblePr
         {/* Citations */}
         {message.citations && message.citations.length > 0 && (
           <CitationPanel citations={message.citations} />
+        )}
+
+        {/* Feedback buttons for assistant messages */}
+        {!isUser && !message.isStreaming && message.content && onFeedback && (
+          <div className="flex items-center gap-2 mt-2">
+            {feedbackGiven !== null ? (
+              <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                <Check className="w-3.5 h-3.5 text-accent-400" />
+                <span>
+                  {feedbackGiven === 1 ? "Cảm ơn phản hồi!" : "Cảm ơn! Chúng tôi sẽ cải thiện."}
+                </span>
+              </div>
+            ) : (
+              <>
+                <span className="text-xs text-gray-600">Phản hồi:</span>
+                <button
+                  onClick={() => handleFeedback(1)}
+                  disabled={isSubmitting}
+                  className="p-1.5 rounded-lg hover:bg-accent-500/20 text-gray-500 hover:text-accent-400 transition-all disabled:opacity-50"
+                  title="Hữu ích"
+                >
+                  <ThumbsUp className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => handleFeedback(-1)}
+                  disabled={isSubmitting}
+                  className="p-1.5 rounded-lg hover:bg-red-500/20 text-gray-500 hover:text-red-400 transition-all disabled:opacity-50"
+                  title="Không hữu ích"
+                >
+                  <ThumbsDown className="w-3.5 h-3.5" />
+                </button>
+              </>
+            )}
+          </div>
         )}
       </div>
     </div>

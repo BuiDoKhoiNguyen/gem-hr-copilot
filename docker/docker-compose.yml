@@ -1,0 +1,200 @@
+
+services:
+  # ─── Elasticsearch ─────────────────────────────────
+  elasticsearch:
+    build:
+      context: ./elasticsearch
+      dockerfile: Dockerfile
+      args:
+        ELASTICSEARCH_VERSION: ${ELASTICSEARCH_VERSION}
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=${ES_SECURITY_ENABLED}
+      - ES_JAVA_OPTS=${ES_JAVA_OPTS}
+    ports:
+      - "${ES_PORT}:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health | grep -v '\"status\":\"red\"'"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+    networks:
+      - gem-hr-network
+    restart: unless-stopped
+
+  # ─── PostgreSQL ──────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gem-hr-network
+    restart: unless-stopped
+
+  # ─── Redis ──────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - gem-hr-network
+    restart: unless-stopped
+
+  # ─── Nginx ──────────────────────────────────────────────
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "${NGINX_PORT}:80"
+      - "${HTTPS_PORT}:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./logs:/var/log/nginx
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - gem-hr-network
+    restart: unless-stopped
+
+  # ─── Backend Service ────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    container_name: backend
+    ports:
+      - "${BACKEND_PORT}:8000"
+    environment:
+      # Database (backend will build DATABASE_URL from these)
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+
+      # Elasticsearch
+      - ES_URL=${ES_URL}
+
+      # Redis
+      - REDIS_URL=${REDIS_URL}
+
+      # Cloud LLM Services (OpenAI-compatible API)
+      - LLM_BASE_URL=${LLM_BASE_URL}
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_MODEL=${LLM_MODEL}
+      - EMBED_BASE_URL=${EMBED_BASE_URL}
+      - EMBED_MODEL=${EMBED_MODEL}
+      - RERANK_BASE_URL=${RERANK_BASE_URL}
+      - RERANK_MODEL=${RERANK_MODEL}
+
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL}
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ../backend/:/app:cached
+      - /app/__pycache__
+    networks:
+      - gem-hr-network
+    restart: unless-stopped
+
+  # ─── Frontend Service ──────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_USE_MOCK: "false"
+    container_name: frontend
+    ports:
+      - "${FRONTEND_PORT}:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+    depends_on:
+      - backend
+    networks:
+      - gem-hr-network
+    restart: unless-stopped
+
+  # ─── ARQ Worker (PDF processing queue) ────────────────────────────────────
+  worker:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: worker
+    command: ["arq", "app.worker.tasks.WorkerSettings"]
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - ES_URL=${ES_URL}
+      - REDIS_URL=${REDIS_URL}
+      - LLM_BASE_URL=${LLM_BASE_URL}
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_MODEL=${LLM_MODEL}
+      - EMBED_BASE_URL=${EMBED_BASE_URL}
+      - EMBED_MODEL=${EMBED_MODEL}
+      - RERANK_BASE_URL=${RERANK_BASE_URL}
+      - RERANK_MODEL=${RERANK_MODEL}
+      - LOG_LEVEL=${LOG_LEVEL}
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ../backend/:/app:cached
+      - /app/__pycache__
+    networks:
+      - gem-hr-network
+    restart: unless-stopped
+
+volumes:
+  es_data:
+    driver: local
+  pg_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  gem-hr-network:
+    driver: bridge

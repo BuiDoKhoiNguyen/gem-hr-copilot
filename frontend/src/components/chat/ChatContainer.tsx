@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Globe, MessageSquarePlus } from "lucide-react";
+import { MessageSquarePlus } from "lucide-react";
 import { useChatStore } from "@/lib/stores/chatStore";
 import { mockQuickPrompts } from "@/lib/mock-data";
+import { getQuickPrompts } from "@/lib/api";
 import MessageBubble from "./MessageBubble";
 import ChatInput from "./ChatInput";
 import QuickPrompts from "./QuickPrompts";
@@ -11,16 +12,32 @@ import ConversationSidebar from "./ConversationSidebar";
 
 export default function ChatContainer() {
   const [storeReady, setStoreReady] = useState(false);
+  const [quickPrompts, setQuickPrompts] = useState(mockQuickPrompts);
 
   useEffect(() => {
     void useChatStore.persist.rehydrate();
     setStoreReady(true);
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+    getQuickPrompts()
+      .then((p) => {
+        if (!cancelled) setQuickPrompts(p);
+      })
+      .catch(() => {
+        /* giữ mockQuickPrompts */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const messages = useChatStore((s) => s.getActiveMessages());
   const isLoading = useChatStore((s) => s.isLoading);
   const error = useChatStore((s) => s.error);
   const language = useChatStore((s) => s.language);
+  const searchAllLanguages = useChatStore((s) => s.searchAllLanguages);
   const sendMessage = useChatStore((s) => s.sendMessage);
   const stopGeneration = useChatStore((s) => s.stopGeneration);
   const toggleStepComplete = useChatStore((s) => s.toggleStepComplete);
@@ -29,6 +46,8 @@ export default function ChatContainer() {
   const conversations = useChatStore((s) => s.conversations);
   const activeConversationId = useChatStore((s) => s.activeConversationId);
   const setLanguage = useChatStore((s) => s.setLanguage);
+  const setSearchAllLanguages = useChatStore((s) => s.setSearchAllLanguages);
+  const submitMessageFeedback = useChatStore((s) => s.submitMessageFeedback);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -38,7 +57,7 @@ export default function ChatContainer() {
 
   const showQuickPrompts =
     messages.length <= 1 && messages.every((m) => m.id === "welcome");
-  const prompts = language === "ja" ? mockQuickPrompts.ja : mockQuickPrompts.vi;
+  const prompts = language === "ja" ? quickPrompts.ja : quickPrompts.vi;
 
   if (!storeReady) {
     return (
@@ -58,17 +77,10 @@ export default function ChatContainer() {
             <h2 className="font-semibold text-white text-sm truncate">
               Chat AI Assistant
             </h2>
-            <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 border border-white/10 shrink-0">
-              <Globe className="w-3.5 h-3.5 text-gray-500" />
-              <select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                className="bg-transparent text-xs text-gray-400 outline-none cursor-pointer"
-              >
-                <option value="vi">Tiếng Việt</option>
-                <option value="ja">日本語</option>
-              </select>
-            </div>
+            <span className="text-xs text-gray-500">
+              {language === "ja" ? "🇯🇵" : "🇻🇳"}{" "}
+              {searchAllLanguages ? "+ All KB" : ""}
+            </span>
           </div>
           <button
             type="button"
@@ -83,7 +95,7 @@ export default function ChatContainer() {
             className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-gray-500 hover:text-white hover:bg-white/5 transition-all"
           >
             <MessageSquarePlus className="w-3.5 h-3.5" />
-            Cuộc mới
+            {language === "ja" ? "新規" : "Cuộc mới"}
           </button>
         </div>
 
@@ -122,6 +134,7 @@ export default function ChatContainer() {
                 key={`${msg.id}-${msg.timestamp}`}
                 message={msg}
                 onToggleStep={toggleStepComplete}
+                onFeedback={submitMessageFeedback}
               />
             ))}
             <div ref={messagesEndRef} />
@@ -129,7 +142,9 @@ export default function ChatContainer() {
 
           {showQuickPrompts && (
             <div className="max-w-4xl mx-auto mt-8">
-              <p className="text-xs text-gray-600 text-center mb-3">Thử hỏi:</p>
+              <p className="text-xs text-gray-600 text-center mb-3">
+                {language === "ja" ? "質問例:" : "Thử hỏi:"}
+              </p>
               <QuickPrompts prompts={prompts} onSelect={sendMessage} />
             </div>
           )}
@@ -139,6 +154,10 @@ export default function ChatContainer() {
           onSend={sendMessage}
           onStop={stopGeneration}
           isLoading={isLoading}
+          language={language}
+          searchAllLanguages={searchAllLanguages}
+          onLanguageChange={setLanguage}
+          onSearchModeChange={setSearchAllLanguages}
         />
       </div>
     </div>

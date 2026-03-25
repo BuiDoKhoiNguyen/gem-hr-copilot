@@ -12,10 +12,6 @@ interface KBListProps {
   selectedKB: string | null;
 }
 
-function getLangFlag(lang: string) {
-  return lang === "vi" ? "🇻🇳" : lang === "ja" ? "🇯🇵" : "🌐";
-}
-
 function getStatusColor(status: string) {
   if (status === "completed") return "text-accent-400 bg-accent-500/10 border-accent-500/20";
   if (status === "processing") return "text-yellow-400 bg-yellow-500/10 border-yellow-500/20";
@@ -48,7 +44,6 @@ export default function KBList({ knowledgeBases, documents, onSelectKB, onDelete
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-semibold text-white">{kb.name}</span>
-                  <span className="text-sm">{getLangFlag(kb.language)}</span>
                 </div>
                 {kb.description && (
                   <p className="text-xs text-gray-500 truncate">{kb.description}</p>
