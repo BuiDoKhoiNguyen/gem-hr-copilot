@@ -55,7 +55,7 @@ export default function ChatInput({
         {/* Language & Search Mode Selector */}
         <div className="flex items-center gap-3 mb-3">
           <div className="flex items-center gap-2">
-            <Languages className="w-4 h-4 text-gray-500" />
+            {/* <Languages className="w-4 h-4 text-gray-500" />
             <select
               value={language}
               onChange={(e) => onLanguageChange(e.target.value)}
@@ -63,7 +63,7 @@ export default function ChatInput({
             >
               <option value="vi">🇻🇳 Tiếng Việt</option>
               <option value="ja">🇯🇵 日本語</option>
-            </select>
+            </select> */}
           </div>
         </div>
 

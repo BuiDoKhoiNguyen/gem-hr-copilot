@@ -13,7 +13,7 @@ class Settings(BaseSettings):
 
     LLM_BACKEND: Literal["local", "huggingface"] = "local"
     LLM_BASE_URL: str = "http://localhost:1234/v1"
-    LLM_MODEL: str = "gpt-4o-mini"
+    LLM_MODEL: str = "gpt-oss-20b"
     LLM_API_KEY: str = "not-needed"
 
     HF_INFERENCE_BASE_URL: str = "https://router.huggingface.co/v1"
